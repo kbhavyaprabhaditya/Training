@@ -17,13 +17,27 @@ on:
 jobs:
   # This workflow contains a single job called "build"
   build:
-    # The type of runner that the job will run on
-    runs-on: sample-agent
+    # The job will run on a self-hosted Windows runner (register a runner with the `Windows` label)
+    runs-on: [self-hosted, Windows]
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v4
+
+      # Runs a PowerShell script on the self-hosted runner to create folders and copy a file
+      - name: Create folders on Desktop and copy file
+        shell: powershell
+        run: |
+          $desktop = Join-Path $env:USERPROFILE 'Desktop'
+          $folder1 = Join-Path $desktop 'folder1'
+          $folder2 = Join-Path $desktop 'folder2'
+          New-Item -ItemType Directory -Path $folder1 -Force | Out-Null
+          $filePath = Join-Path $folder1 'testfile.txt'
+          Set-Content -Path $filePath -Value 'This is a test file.' -Force
+          New-Item -ItemType Directory -Path $folder2 -Force | Out-Null
+          Copy-Item -Path $filePath -Destination (Join-Path $folder2 'testfile.txt') -Force
+          Write-Output "Created folders and copied file to $folder2"
 
       # Runs a single command using the runners shell
       - name: Run a one-line script
